@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#1e40af',
+                        accent: '#f97316',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        memory: '#8b5cf6',
+                        scientific: '#ec4899' // Color for scientific function buttons
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .calc-shadow {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            }
+            .btn-hover {
+                @apply transition-all duration-200 hover:scale-105 active:scale-95;
+            }
+            .display-transition {
+                @apply transition-all duration-300 ease-in-out;
+            }
+            .memory-indicator {
+                @apply absolute top-2 left-2 text-xs text-memory font-bold;
+            }
+            .scientific-indicator {
+                @apply absolute top-2 right-2 text-xs text-scientific font-bold;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-pink-100 min-h-screen flex items-center justify-center p-4 font-sans">
+    <div class="calculator-container bg-white rounded-2xl calc-shadow max-w-lg w-full overflow-hidden relative">
+        <span id="memoryIndicator" class="memory-indicator hidden">M</span>
+        <span id="scientificIndicator" class="scientific-indicator hidden">SCI</span>
+        
+        <div class="display-section bg-dark text-white p-6">
+            <div class="history text-right text-gray-400 min-h-6 text-sm mb-2" id="history">0</div>
+            <div class="current text-right text-4xl font-bold min-h-14" id="display">0</div>
+        </div>
+        
+        <!-- Memory function buttons row -->
+        <div class="buttons-grid grid grid-cols-4 gap-1 p-2">
+            <button class="bg-memory hover:bg-purple-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="memory-add">
+                <i class="fa fa-plus-circle mr-1"></i>M+
+            </button>
+            <button class="bg-memory hover:bg-purple-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="memory-subtract">
+                <i class="fa fa-minus-circle mr-1"></i>M-
+            </button>
+            <button class="bg-memory hover:bg-purple-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="memory-recall">
+                <i class="fa fa-retweet mr-1"></i>MR
+            </button>
+            <button class="bg-memory hover:bg-purple-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="memory-clear">
+                <i class="fa fa-trash mr-1"></i>MC
+            </button>
+        </div>
+        
+        <!-- Scientific function toggle button -->
+        <div class="scientific-toggle p-2">
+            <button class="bg-scientific hover:bg-pink-600 text-white py-2 px-4 rounded-lg btn-hover text-sm w-full" data-action="toggle-scientific">
+                <i class="fa fa-flask mr-1"></i>Scientific
+            </button>
+        </div>
+        
+        <!-- Main calculator buttons (basic) -->
+        <div class="buttons-grid grid grid-cols-4 gap-1 p-2" id="basic-buttons">
+            <button class="bg-gray-200 hover:bg-gray-300 text-dark py-4 px-2 rounded-lg btn-hover" data-action="clear">
+                <i class="fa fa-refresh mr-1"></i>C
+            </button>
+            <button class="bg-gray-200 hover:bg-gray-300 text-dark py-4 px-2 rounded-lg btn-hover" data-action="backspace">
+                <i class="fa fa-backspace"></i>
+            </button>
+            <button class="bg-gray-200 hover:bg-gray-300 text-dark py-4 px-2 rounded-lg btn-hover" data-operator="%">
+                %
+            </button>
+            <button class="bg-accent hover:bg-orange-500 text-white py-4 px-2 rounded-lg btn-hover" data-operator="/">
+                <i class="fa fa-divide"></i>
+            </button>
+            
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="7">7</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="8">8</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="9">9</button>
+            <button class="bg-accent hover:bg-orange-500 text-white py-4 px-2 rounded-lg btn-hover" data-operator="*">
+                <i class="fa fa-times"></i>
+            </button>
+            
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="4">4</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="5">5</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="6">6</button>
+            <button class="bg-accent hover:bg-orange-500 text-white py-4 px-2 rounded-lg btn-hover" data-operator="-">
+                <i class="fa fa-minus"></i>
+            </button>
+            
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="1">1</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="2">2</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="3">3</button>
+            <button class="bg-accent hover:bg-orange-500 text-white py-4 px-2 rounded-lg btn-hover" data-operator="+">
+                <i class="fa fa-plus"></i>
+            </button>
+            
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover col-span-1" data-number="0">0</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-action="decimal">.</button>
+            <button class="bg-primary hover:bg-secondary text-white py-4 px-2 rounded-lg btn-hover col-span-2" data-action="calculate">=</button>
+        </div>
+        
+        <!-- Scientific calculator buttons (hidden by default) -->
+        <div class="buttons-grid grid grid-cols-4 gap-1 p-2 hidden" id="scientific-buttons">
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="sin">
+                <i class="fa fa-angle-double-right mr-1"></i>sin
+            </button>
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="cos">
+                <i class="fa fa-angle-double-right mr-1"></i>cos
+            </button>
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="tan">
+                <i class="fa fa-angle-double-right mr-1"></i>tan
+            </button>
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="power">
+                <i class="fa fa-arrow-up mr-1"></i>x<sup>y</sup>
+            </button>
+            
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="asin">
+                <i class="fa fa-angle-double-right mr-1"></i>asin
+            </button>
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="acos">
+                <i class="fa fa-angle-double-right mr-1"></i>acos
+            </button>
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="atan">
+                <i class="fa fa-angle-double-right mr-1"></i>atan
+            </button>
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="sqrt">
+                <i class="fa fa-square-root-o mr-1"></i>√
+            </button>
+            
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="log">
+                <i class="fa fa-angle-double-right mr-1"></i>log
+            </button>
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="ln">
+                <i class="fa fa-angle-double-right mr-1"></i>ln
+            </button>
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="factorial">
+                <i class="fa fa-exclamation mr-1"></i>x!
+            </button>
+            <button class="bg-scientific hover:bg-pink-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="pi">
+                <i class="fa fa-circle-o mr-1"></i>π
+            </button>
+            
+            <button class="bg-gray-200 hover:bg-gray-300 text-dark py-4 px-2 rounded-lg btn-hover" data-action="clear">
+                <i class="fa fa-refresh mr-1"></i>C
+            </button>
+            <button class="bg-gray-200 hover:bg-gray-300 text-dark py-4 px-2 rounded-lg btn-hover" data-action="backspace">
+                <i class="fa fa-backspace"></i>
+            </button>
+            <button class="bg-gray-200 hover:bg-gray-300 text-dark py-4 px-2 rounded-lg btn-hover" data-operator="%">
+                %
+            </button>
+            <button class="bg-accent hover:bg-orange-500 text-white py-4 px-2 rounded-lg btn-hover" data-operator="/">
+                <i class="fa fa-divide"></i>
+            </button>
+        </div>
+    </div>
+    <script>
+        const calculator = {
+            displayValue: '0',
+            firstOperand: null,
+            waitingForSecondOperand: false,
+            operator: null,
+            history: '0',
+            memory: 0,
+            hasMemory: false,
+            isScientificMode: false, // Track scientific mode status
+            lastResult: null // Store last calculation result
+        };
+
+        function updateDisplay() {
+            const display = document.getElementById('display');
+            const history = document.getElementById('history');
+            const memoryIndicator = document.getElementById('memoryIndicator');
+            const scientificIndicator = document.getElementById('scientificIndicator');
+            
+            // Show/hide memory indicator based on memory status
+            calculator.hasMemory ? memoryIndicator.classList.remove('hidden') : memoryIndicator.classList.add('hidden');
+            // Show/hide scientific mode indicator
+            calculator.isScientificMode ? scientificIndicator.classList.remove('hidden') : scientificIndicator.classList.add('hidden');
+            
+            // Add animation for display updates
+            display.classList.add('scale-110', 'opacity-0');
+            setTimeout(() => {
+                display.textContent = calculator.displayValue;
+                history.textContent = calculator.history;
+                display.classList.remove('scale-110', 'opacity-0');
+            }, 100);
+        }
+
+        function inputDigit(digit) {
+            const { displayValue, waitingForSecondOperand } = calculator;
+            if (waitingForSecondOperand) {
+                calculator.displayValue = digit;
+                calculator.waitingForSecondOperand = false;
+            } else {
+                calculator.displayValue = displayValue === '0' ? digit : displayValue + digit;
+            }
+            updateDisplay();
+        }
+
+        function inputDecimal() {
+            if (calculator.waitingForSecondOperand) {
+                calculator.displayValue = '0.';
+                calculator.waitingForSecondOperand = false;
+                updateDisplay();
+                return;
+            }
+            if (!calculator.displayValue.includes('.')) {
+                calculator.displayValue += '.';
+                updateDisplay();
+            }
+        }
+
+        function handleOperator(nextOperator) {
+            const { firstOperand, displayValue, operator } = calculator;
+            const inputValue = parseFloat(displayValue);
+            
+            if (operator && calculator.waitingForSecondOperand) {
+                calculator.operator = nextOperator;
+                updateDisplay();
+                return;
+            }
+            
+            if (firstOperand === null && !isNaN(inputValue)) {
+                calculator.firstOperand = inputValue;
+            } else if (operator) {
+                calculateResult();
+            }
+            
+            calculator.waitingForSecondOperand = true;
+            calculator.operator = nextOperator;
+            calculator.history = `${firstOperand || 0} ${nextOperator}`;
+            updateDisplay();
+        }
+
+        function calculateResult() {
+            if (calculator.firstOperand === null || calculator.operator === null) {
+                return;
+            }
+            const first = calculator.firstOperand;
+            const second = parseFloat(calculator.displayValue);
+            const operator = calculator.operator;
+            
+            let result;
+            switch (operator) {
+                case '+':
+                    result = first + second;
+                    break;
+                case '-':
+                    result = first - second;
+                    break;
+                case '*':
+                    result = first * second;
+                    break;
+                case '/':
+                    result = second === 0 ? 'Error' : first / second;
+                    break;
+                case '%':
+                    result = first % second;
+                    break;
+                default:
+                    return;
+            }
+            
+            // Format result to avoid long decimals
+            if (typeof result === 'number') {
+                result = result % 1 === 0 ? result.toFixed(0) : result.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+            }
+            
+            calculator.displayValue = String(result);
+            calculator.history = `${first} ${operator} ${second} =`;
+            calculator.firstOperand = result === 'Error' ? null : parseFloat(result);
+            calculator.operator = null;
+            calculator.waitingForSecondOperand = false;
+            calculator.lastResult = result; // Store last result
+            updateDisplay();
+        }
+
+        function resetCalculator() {
+            calculator.displayValue = '0';
+            calculator.firstOperand = null;
+            calculator.waitingForSecondOperand = false;
+            calculator.operator = null;
+            calculator.history = '0';
+            updateDisplay();
+        }
+
+        function backspace() {
+            const { displayValue } = calculator;
+            if (displayValue.length > 1) {
+                calculator.displayValue = displayValue.slice(0, -1);
+            } else {
+                calculator.displayValue = '0';
+            }
+            updateDisplay();
+        }
+
+        // Memory functions
+        function memoryAdd() {
+            const currentValue = parseFloat(calculator.displayValue) || 0;
+            calculator.memory += currentValue;
+            calculator.hasMemory = true;
+            calculator.history = `M+ (${currentValue}) | Memory: ${calculator.memory}`;
+            updateDisplay();
+        }
+
+        function memorySubtract() {
+            const currentValue = parseFloat(calculator.displayValue) || 0;
+            calculator.memory -= currentValue;
+            calculator.hasMemory = true;
+            calculator.history = `M- (${currentValue}) | Memory: ${calculator.memory}`;
+            updateDisplay();
+        }
+
+        function memoryRecall() {
+            calculator.displayValue = calculator.memory.toString();
+            calculator.history = `MR | Memory: ${calculator.memory}`;
+            calculator.waitingForSecondOperand = false;
+            updateDisplay();
+        }
+
+        function memoryClear() {
+            calculator.memory = 0;
+            calculator.hasMemory = false;
+            calculator.history = 'MC | Memory cleared';
+            updateDisplay();
+        }
+
+        // Scientific functions
+        function calculateSin() {
+            const value = parseFloat(calculator.displayValue) || 0;
+            // Convert degrees to radians for JavaScript's Math functions
+            const radians = value * (Math.PI / 180);
+            const result = Math.sin(radians).toFixed(6);
+            calculator.displayValue = result;
+            calculator.history = `sin(${value}°)`;
+            updateDisplay();
+        }
+
+        function calculateCos() {
+            const value = parseFloat(calculator.displayValue) || 0;
+            const radians = value * (Math.PI / 180);
+            const result = Math.cos(radians).toFixed(6);
+            calculator.displayValue = result;
+            calculator.history = `cos(${value}°)`;
+            updateDisplay();
+        }
+
+        function calculateTan() {
+            const value = parseFloat(calculator.displayValue) || 0;
+            const radians = value * (Math.PI / 180);
+            const result = Math.tan(radians).toFixed(6);
+            calculator.displayValue = result;
+            calculator.history = `tan(${value}°)`;
+            updateDisplay();
+        }
+
+        function calculateAsin() {
+            const value = parseFloat(calculator.displayValue) || 0;
+            // Result in degrees
+            const result = (Math.asin(value) * 180 / Math.PI).toFixed(6);
+            calculator.displayValue = result;
+            calculator.history = `asin(${value})`;
+            updateDisplay();
+        }
+
+        function calculateAcos() {
+            const value = parseFloat(calculator.displayValue) || 0;
+            const result = (Math.acos(value) * 180 / Math.PI).toFixed(6);
+            calculator.displayValue = result;
+            calculator.history = `acos(${value})`;
+            updateDisplay();
+        }
+
+        function calculateAtan() {
+            const value = parseFloat(calculator.displayValue) || 0;
+            const result = (Math.atan(value) * 180 / Math.PI).toFixed(6);
+            calculator.displayValue = result;
+            calculator.history = `atan(${value})`;
+            updateDisplay();
+        }
+
+        function calculatePower() {
+            calculator.firstOperand = parseFloat(calculator.displayValue) || 0;
+            calculator.operator = '^';
+            calculator.waitingForSecondOperand = true;
+            calculator.history = `${calculator.firstOperand}^`;
+            updateDisplay();
+        }
+
+        function calculateSqrt() {
+            const value = parseFloat(calculator.displayValue) || 0;
+            const result = Math.sqrt(value).toFixed(6);
+            calculator.displayValue = result;
+            calculator.history = `√(${value})`;
+            updateDisplay();
+        }
+
+        function calculateLog() {
+            const value = parseFloat(calculator.displayValue) || 0;
+            const result = Math.log10(value).toFixed(6);
+            calculator.displayValue = result;
+            calculator.history = `log(${value})`;
+            updateDisplay();
+        }
+
+        function calculateLn() {
+            const value = parseFloat(calculator.displayValue) || 0;
+            const result = Math.log(value).toFixed(6);
+            calculator.displayValue = result;
+            calculator.history = `ln(${value})`;
+            updateDisplay();
+        }
+
+        function calculateFactorial() {
+            const value = parseInt(calculator.displayValue) || 0;
+            let result = 1;
+            
+            if (value < 0) {
+                result = 'Error';
+            } else if (value === 0) {
+                result = 1;
+            } else {
+                for (let i = 1; i <= value; i++) {
+                    result *= i;
+                }
+            }
+            
+            calculator.displayValue = result.toString();
+            calculator.history = `${value}!`;
+            updateDisplay();
+        }
+
+        function insertPi() {
+            calculator.displayValue = Math.PI.toFixed(6);
+            calculator.history = 'π';
+            calculator.waitingForSecondOperand = false;
+            updateDisplay();
+        }
+
+        // Toggle scientific mode
+        function toggleScientificMode() {
+            calculator.isScientificMode = !calculator.isScientificMode;
+            const basicButtons = document.getElementById('basic-buttons');
+            const scientificButtons = document.getElementById('scientific-buttons');
+            
+            if (calculator.isScientificMode) {
+                basicButtons.classList.add('hidden');
+                scientificButtons.classList.remove('hidden');
+            } else {
+                basicButtons.classList.remove('hidden');
+                scientificButtons.classList.add('hidden');
+            }
+            
+            updateDisplay();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Number buttons
+            document.querySelectorAll('[data-number]').forEach(button => {
+                button.addEventListener('click', () => {
+                    inputDigit(button.dataset.number);
+                });
+            });
+
+            // Decimal button
+            document.querySelector('[data-action="decimal"]').addEventListener('click', inputDecimal);
+
+            // Operator buttons
+            document.querySelectorAll('[data-operator]').forEach(button => {
+                button.addEventListener('click', () => {
+                    handleOperator(button.dataset.operator);
+                });
+            });
+
+            // Calculate button
+            document.querySelector('[data-action="calculate"]').addEventListener('click', calculateResult);
+
+            // Clear button
+            document.querySelector('[data-action="clear"]').addEventListener('click', resetCalculator);
+
+            // Backspace button
+            document.querySelector('[data-action="backspace"]').addEventListener('click', backspace);
+
+            // Memory function buttons
+            document.querySelector('[data-action="memory-add"]').addEventListener('click', memoryAdd);
+            document.querySelector('[data-action="memory-subtract"]').addEventListener('click', memorySubtract);
+            document.querySelector('[data-action="memory-recall"]').addEventListener('click', memoryRecall);
+            document.querySelector('[data-action="memory-clear"]').addEventListener('click', memoryClear);
+
+            // Scientific function buttons
+            document.querySelector('[data-action="toggle-scientific"]').addEventListener('click', toggleScientificMode);
+            document.querySelector('[data-action="sin"]').addEventListener('click', calculateSin);
+            document.querySelector('[data-action="cos"]').addEventListener('click', calculateCos);
+            document.querySelector('[data-action="tan"]').addEventListener('click', calculateTan);
+            document.querySelector('[data-action="asin"]').addEventListener('click', calculateAsin);
+            document.querySelector('[data-action="acos"]').addEventListener('click', calculateAcos);
+            document.querySelector('[data-action="atan"]').addEventListener('click', calculateAtan);
+            document.querySelector('[data-action="power"]').addEventListener('click', calculatePower);
+            document.querySelector('[data-action="sqrt"]').addEventListener('click', calculateSqrt);
+            document.querySelector('[data-action="log"]').addEventListener('click', calculateLog);
+            document.querySelector('[data-action="ln"]').addEventListener('click', calculateLn);
+            document.querySelector('[data-action="factorial"]').addEventListener('click', calculateFactorial);
+            document.querySelector('[data-action="pi"]').addEventListener('click', insertPi);
+
+            // Keyboard support
+            document.addEventListener('keydown', function(event) {
+                const key = event.key;
+                
+                // Number keys
+                if (/[0-9]/.test(key)) {
+                    event.preventDefault();
+                    inputDigit(key);
+                }
+                
+                // Decimal point
+                if (key === '.' || key === ',') {
+                    event.preventDefault();
+                    inputDecimal();
+                }
+                
+                // Operators
+                if (key === '+' || key === '-' || key === '*' || key === '/') {
+                    event.preventDefault();
+                    handleOperator(key);
+                }
+                
+                // Equals or Enter
+                if (key === '=' || key === 'Enter') {
+                    event.preventDefault();
+                    calculateResult();
+                }
+                
+                // Backspace
+                if (key === 'Backspace') {
+                    event.preventDefault();
+                    backspace();
+                }
+                
+                // Escape for clear
+                if (key === 'Escape') {
+                    event.preventDefault();
+                    resetCalculator();
+                }
+            });
+
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>

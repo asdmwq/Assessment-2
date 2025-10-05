@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator with Memory Functions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#1e40af',
+                        accent: '#f97316',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        memory: '#8b5cf6'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .calc-shadow {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            }
+            .btn-hover {
+                @apply transition-all duration-200 hover:scale-105 active:scale-95;
+            }
+            .display-transition {
+                @apply transition-all duration-300 ease-in-out;
+            }
+            .memory-indicator {
+                @apply absolute top-2 left-2 text-xs text-memory font-bold;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4 font-sans">
+    <div class="calculator-container bg-white rounded-2xl calc-shadow max-w-md w-full overflow-hidden relative">
+        <span id="memoryIndicator" class="memory-indicator hidden">M</span>
+        
+        <div class="display-section bg-dark text-white p-6">
+            <div class="history text-right text-gray-400 min-h-6 text-sm mb-2" id="history">0</div>
+            <div class="current text-right text-4xl font-bold min-h-14" id="display">0</div>
+        </div>
+        
+        <!-- Memory function buttons row -->
+        <div class="buttons-grid grid grid-cols-4 gap-1 p-2">
+            <button class="bg-memory hover:bg-purple-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="memory-add">
+                <i class="fa fa-plus-circle mr-1"></i>M+
+            </button>
+            <button class="bg-memory hover:bg-purple-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="memory-subtract">
+                <i class="fa fa-minus-circle mr-1"></i>M-
+            </button>
+            <button class="bg-memory hover:bg-purple-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="memory-recall">
+                <i class="fa fa-retweet mr-1"></i>MR
+            </button>
+            <button class="bg-memory hover:bg-purple-600 text-white py-3 px-2 rounded-lg btn-hover text-sm" data-action="memory-clear">
+                <i class="fa fa-trash mr-1"></i>MC
+            </button>
+        </div>
+        
+        <!-- Main calculator buttons -->
+        <div class="buttons-grid grid grid-cols-4 gap-1 p-2">
+            <button class="bg-gray-200 hover:bg-gray-300 text-dark py-4 px-2 rounded-lg btn-hover" data-action="clear">
+                <i class="fa fa-refresh mr-1"></i>C
+            </button>
+            <button class="bg-gray-200 hover:bg-gray-300 text-dark py-4 px-2 rounded-lg btn-hover" data-action="backspace">
+                <i class="fa fa-backspace"></i>
+            </button>
+            <button class="bg-gray-200 hover:bg-gray-300 text-dark py-4 px-2 rounded-lg btn-hover" data-operator="%">
+                %
+            </button>
+            <button class="bg-accent hover:bg-orange-500 text-white py-4 px-2 rounded-lg btn-hover" data-operator="/">
+                <i class="fa fa-divide"></i>
+            </button>
+            
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="7">7</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="8">8</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="9">9</button>
+            <button class="bg-accent hover:bg-orange-500 text-white py-4 px-2 rounded-lg btn-hover" data-operator="*">
+                <i class="fa fa-times"></i>
+            </button>
+            
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="4">4</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="5">5</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="6">6</button>
+            <button class="bg-accent hover:bg-orange-500 text-white py-4 px-2 rounded-lg btn-hover" data-operator="-">
+                <i class="fa fa-minus"></i>
+            </button>
+            
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="1">1</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="2">2</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-number="3">3</button>
+            <button class="bg-accent hover:bg-orange-500 text-white py-4 px-2 rounded-lg btn-hover" data-operator="+">
+                <i class="fa fa-plus"></i>
+            </button>
+            
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover col-span-1" data-number="0">0</button>
+            <button class="bg-light hover:bg-gray-100 text-dark py-4 px-2 rounded-lg btn-hover" data-action="decimal">.</button>
+            <button class="bg-primary hover:bg-secondary text-white py-4 px-2 rounded-lg btn-hover col-span-2" data-action="calculate">=</button>
+        </div>
+    </div>
+    <script>
+        const calculator = {
+            displayValue: '0',
+            firstOperand: null,
+            waitingForSecondOperand: false,
+            operator: null,
+            history: '0',
+            memory: 0,
+            hasMemory: false
+        };
+
+        function updateDisplay() {
+            const display = document.getElementById('display');
+            const history = document.getElementById('history');
+            const memoryIndicator = document.getElementById('memoryIndicator');
+            
+            calculator.hasMemory ? memoryIndicator.classList.remove('hidden') : memoryIndicator.classList.add('hidden');
+            
+            display.classList.add('scale-110', 'opacity-0');
+            setTimeout(() => {
+                display.textContent = calculator.displayValue;
+                history.textContent = calculator.history;
+                display.classList.remove('scale-110', 'opacity-0');
+            }, 100);
+        }
+
+        function inputDigit(digit) {
+            const { displayValue, waitingForSecondOperand } = calculator;
+            if (waitingForSecondOperand) {
+                calculator.displayValue = digit;
+                calculator.waitingForSecondOperand = false;
+            } else {
+                calculator.displayValue = displayValue === '0' ? digit : displayValue + digit;
+            }
+            updateDisplay();
+        }
+
+        function inputDecimal() {
+            if (calculator.waitingForSecondOperand) {
+                calculator.displayValue = '0.';
+                calculator.waitingForSecondOperand = false;
+                updateDisplay();
+                return;
+            }
+            if (!calculator.displayValue.includes('.')) {
+                calculator.displayValue += '.';
+                updateDisplay();
+            }
+        }
+
+        function handleOperator(nextOperator) {
+            const { firstOperand, displayValue, operator } = calculator;
+            const inputValue = parseFloat(displayValue);
+            
+            if (operator && calculator.waitingForSecondOperand) {
+                calculator.operator = nextOperator;
+                updateDisplay();
+                return;
+            }
+            
+            if (firstOperand === null && !isNaN(inputValue)) {
+                calculator.firstOperand = inputValue;
+            } else if (operator) {
+                calculateResult();
+            }
+            
+            calculator.waitingForSecondOperand = true;
+            calculator.operator = nextOperator;
+            calculator.history = `${firstOperand || 0} ${nextOperator}`;
+            updateDisplay();
+        }
+
+        function calculateResult() {
+            if (calculator.firstOperand === null || calculator.operator === null) {
+                return;
+            }
+            const first = calculator.firstOperand;
+            const second = parseFloat(calculator.displayValue);
+            const operator = calculator.operator;
+            
+            let result;
+            switch (operator) {
+                case '+':
+                    result = first + second;
+                    break;
+                case '-':
+                    result = first - second;
+                    break;
+                case '*':
+                    result = first * second;
+                    break;
+                case '/':
+                    result = second === 0 ? 'Error' : first / second;
+                    break;
+                case '%':
+                    result = first % second;
+                    break;
+                default:
+                    return;
+            }
+            
+            if (typeof result === 'number') {
+                result = result % 1 === 0 ? result.toFixed(0) : result.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+            }
+            
+            calculator.displayValue = String(result);
+            calculator.history = `${first} ${operator} ${second} =`;
+            calculator.firstOperand = result === 'Error' ? null : parseFloat(result);
+            calculator.operator = null;
+            calculator.waitingForSecondOperand = false;
+            updateDisplay();
+        }
+
+        function resetCalculator() {
+            calculator.displayValue = '0';
+            calculator.firstOperand = null;
+            calculator.waitingForSecondOperand = false;
+            calculator.operator = null;
+            calculator.history = '0';
+            updateDisplay();
+        }
+
+        function backspace() {
+            const { displayValue } = calculator;
+            if (displayValue.length > 1) {
+                calculator.displayValue = displayValue.slice(0, -1);
+            } else {
+                calculator.displayValue = '0';
+            }
+            updateDisplay();
+        }
+
+        // Memory functions
+        function memoryAdd() {
+            const currentValue = parseFloat(calculator.displayValue) || 0;
+            calculator.memory += currentValue;
+            calculator.hasMemory = true;
+            calculator.history = `M+ (${currentValue}) | Memory: ${calculator.memory}`;
+            updateDisplay();
+        }
+
+        function memorySubtract() {
+            const currentValue = parseFloat(calculator.displayValue) || 0;
+            calculator.memory -= currentValue;
+            calculator.hasMemory = true;
+            calculator.history = `M- (${currentValue}) | Memory: ${calculator.memory}`;
+            updateDisplay();
+        }
+
+        function memoryRecall() {
+            calculator.displayValue = calculator.memory.toString();
+            calculator.history = `MR | Memory: ${calculator.memory}`;
+            updateDisplay();
+        }
+
+        function memoryClear() {
+            calculator.memory = 0;
+            calculator.hasMemory = false;
+            calculator.history = `MC | Memory: Cleared`;
+            updateDisplay();
+        }
+
+        function initEventListeners() {
+            document.querySelectorAll('[data-number]').forEach(button => {
+                button.addEventListener('click', () => {
+                    inputDigit(button.dataset.number);
+                });
+            });
+
+            document.querySelector('[data-action="decimal"]').addEventListener('click', inputDecimal);
+
+            document.querySelectorAll('[data-operator]').forEach(button => {
+                button.addEventListener('click', () => {
+                    handleOperator(button.dataset.operator);
+                });
+            });
+
+            document.querySelector('[data-action="calculate"]').addEventListener('click', calculateResult);
+            document.querySelector('[data-action="clear"]').addEventListener('click', resetCalculator);
+            document.querySelector('[data-action="backspace"]').addEventListener('click', backspace);
+
+            // Memory function buttons event listeners
+            document.querySelector('[data-action="memory-add"]').addEventListener('click', memoryAdd);
+            document.querySelector('[data-action="memory-subtract"]').addEventListener('click', memorySubtract);
+            document.querySelector('[data-action="memory-recall"]').addEventListener('click', memoryRecall);
+            document.querySelector('[data-action="memory-clear"]').addEventListener('click', memoryClear);
+
+            // Keyboard support
+            document.addEventListener('keydown', (event) => {
+                if (/[0-9]/.test(event.key)) {
+                    event.preventDefault();
+                    inputDigit(event.key);
+                }
+                if (event.key === '.') {
+                    event.preventDefault();
+                    inputDecimal();
+                }
+                if (event.key === '+' || event.key === '-' || event.key === '*' || event.key === '/') {
+                    event.preventDefault();
+                    handleOperator(event.key);
+                }
+                if (event.key === '=' || event.key === 'Enter') {
+                    event.preventDefault();
+                    calculateResult();
+                }
+                if (event.key === 'Backspace') {
+                    event.preventDefault();
+                    backspace();
+                }
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    resetCalculator();
+                }
+                // Memory function shortcuts
+                if (event.altKey && event.key === 'm') {
+                    event.preventDefault();
+                    memoryClear();
+                }
+                if (event.altKey && event.key === '+') {
+                    event.preventDefault();
+                    memoryAdd();
+                }
+                if (event.altKey && event.key === '-') {
+                    event.preventDefault();
+                    memorySubtract();
+                }
+                if (event.altKey && event.key === 'r') {
+                    event.preventDefault();
+                    memoryRecall();
+                }
+            });
+        }
+
+        function initCalculator() {
+            updateDisplay();
+            initEventListeners();
+        }
+
+        window.addEventListener('DOMContentLoaded', initCalculator);
+    </script>
+</body>
+</html>
